@@ -11,6 +11,7 @@ The goal is not to describe desired future behavior. The goal is to record curre
 This baseline covers the current bundled skill implementation centered on:
 
 - `scripts/run_agent_client.py`
+- `scripts/download_skill.py`
 - `agents_client/streaming/`
 - `agents_client/db_polling/`
 - `agents_client/utils.py`
@@ -29,6 +30,7 @@ It also uses the following as supporting contract references, but code remains t
 - `SKILL.md`
 - `references/runtime-contract.md`
 - `tests/test_run_agent_client.py`
+- `tests/test_download_skill.py`
 
 ## Baseline Rule
 
@@ -51,12 +53,14 @@ The repository currently implements a bundled Fintools client skill that:
 
 - runs `trading` and `deep_research` agent clients,
 - supports `streaming` and `polling` execution modes,
+- downloads public skill archives through `/api/v1/public/skills/{repo_id}/download`,
 - chooses or prepares a reusable Python runtime,
 - creates a parent run directory and a unique run subdirectory,
 - caches and reuses `FINTOOLS_ACCESS_TOKEN`,
 - mirrors run output into `run.log`,
 - writes a machine-readable `summary.json`,
 - downloads reports into `downloaded_reports/` when available,
+- downloads skill archives into `downloaded_skills/` when requested,
 - remains runnable after being copied outside the original parent repository, as long as the bundled files remain present.
 
 ## Non-Goals For This Baseline

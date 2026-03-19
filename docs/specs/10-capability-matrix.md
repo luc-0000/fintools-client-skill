@@ -13,6 +13,7 @@ Status values:
 | ID | Capability | Status | Primary Evidence | Current Coverage |
 |---|---|---|---|---|
 | CAP-001 | Wrapper CLI requires `--agent-type`, `--mode`, `--stock-code`, `--agent-url` | implemented | `scripts/run_agent_client.py` `ensure_required()` | covered |
+| CAP-001A | Public skill downloader CLI requires `--skill-id` as the top-level target for public skill archive downloads | implemented | `scripts/download_skill.py` `parse_args()` | covered |
 | CAP-002 | Only `streaming` and `polling` are accepted mode names | implemented | `scripts/run_agent_client.py` `normalize_mode()` | covered |
 | CAP-003 | Supported combinations are `trading/deep_research` x `streaming/polling` | implemented | `run_inside_env()` dispatch branches | partially covered |
 | CAP-004 | Unsupported agent/mode combinations fail explicitly instead of silently remapping | implemented | `run_inside_env()` final `fail(...)` branch | gap |
@@ -33,6 +34,7 @@ Status values:
 | CAP-019 | `run.log` is created in the run directory and mirrors stdout/stderr | implemented | `TeeStream` + `run_inside_env()` | gap |
 | CAP-020 | `summary.json` is always written with stable top-level fields | implemented | `write_summary()` + `run_inside_env()` | partially covered |
 | CAP-021 | `summary.json` includes `report_path`, `log_path`, `run_dir`, runtime metadata, success, and error | implemented | `run_inside_env()` summary payload | partially covered |
+| CAP-021A | `summary.json` includes `skill_id` and `public_base_url` for public skill archive downloads | implemented | `scripts/download_skill.py` `run_inside_env()` summary payload | covered |
 | CAP-022 | Streaming `trading` path is dispatched through `agents_client.streaming.trading_agent_client_stream` | implemented | `run_streaming_trading()` | covered indirectly |
 | CAP-023 | Streaming `deep_research` path is dispatched through `agents_client.streaming.dr_agent_client_stream` | implemented | `run_streaming_deep_research()` | gap |
 | CAP-024 | Polling `trading` path is dispatched through `agents_client.db_polling.trading_agent_client_db` | implemented | `run_polling_trading()` | partially covered |
@@ -46,6 +48,9 @@ Status values:
 | CAP-032 | Polling client downloads final reports after completed status | implemented | `print_report_download_result()` | partially covered |
 | CAP-033 | Report downloading handles 404 and 410 responses without raising uncaught errors | implemented | `ReportDownloader.download_zip()` | gap |
 | CAP-034 | Streaming probe output is kept under `<parent-dir>/probe/` | implemented | `scripts/stream_probe.py` helpers | partially covered |
+| CAP-035 | Public skill archive downloads are written under `<run-dir>/downloaded_skills/` | implemented | `scripts/download_skill.py` `download_public_skill()` | covered |
+| CAP-036 | Public skill archive downloads do not require access token resolution | implemented | `scripts/download_skill.py` `main()` + `run_inside_env()` | covered |
+| CAP-037 | Public skill archive download URLs are built from `--public-base-url` plus `/skills/{repo_id}/download` | implemented | `scripts/download_skill.py` `public_skill_download_url()` | covered |
 
 ## Current Test Gap Priorities
 
@@ -60,6 +65,7 @@ The following capabilities are part of the baseline but are not yet well protect
 - `CAP-030` final result output contract
 - `CAP-031` task recovery branches for `completed`, `failed`, `not found`, and polling continuation
 - `CAP-033` report downloader behavior for 404 and 410
+- `CAP-035` and `CAP-037` error handling for public skill download failures
 
 ## Notes On Coverage Labels
 

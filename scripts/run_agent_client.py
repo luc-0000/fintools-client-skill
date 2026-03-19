@@ -42,7 +42,7 @@ def announce_result(message):
     print("[result] {0}".format(message), flush=True)
 
 
-def validate_skill_layout():
+def validate_agent_layout():
     missing = []
     if not AGENTS_CLIENT_DIR.is_dir():
         missing.append("agents_client/")
@@ -55,8 +55,7 @@ def validate_skill_layout():
             )
         )
 
-
-validate_skill_layout()
+validate_agent_layout()
 
 
 def runtime_root_dir():
@@ -125,7 +124,6 @@ def normalize_mode(mode):
     if not normalized:
         fail("Unsupported --mode value: {0}. Use streaming or polling.".format(mode))
     return normalized
-
 
 def token_file_path(parent_dir):
     return Path(parent_dir) / TOKEN_FILENAME
@@ -291,7 +289,6 @@ def write_install_state(payload):
 def log_file_path(work_dir):
     return Path(work_dir) / LOG_NAME
 
-
 def find_downloaded_report(reports_dir):
     reports_path = Path(reports_dir)
     if not reports_path.exists():
@@ -303,7 +300,6 @@ def find_downloaded_report(reports_dir):
 
     latest_file = max(files, key=lambda path: path.stat().st_mtime)
     return str(latest_file.resolve())
-
 
 class TeeStream:
     def __init__(self, *streams):
@@ -465,8 +461,6 @@ def print_runtime_banner(parent_dir, work_dir, parent_auto_created, runtime_meta
 
 
 async def run_inside_env(args):
-    announce_status("正在读取访问令牌")
-    token = resolve_access_token(args)
     work_dir = Path(args.work_dir).resolve()
     parent_auto_created = args._work_dir_auto_created
     reports_dir = work_dir / "downloaded_reports"
@@ -490,6 +484,8 @@ async def run_inside_env(args):
         sys.stderr = tee_stderr
         try:
             announce_status("当前日志文件: {0}".format(run_log))
+            announce_status("正在读取访问令牌")
+            token = resolve_access_token(args)
             if args.mode == "streaming" and args.agent_type == "deep_research":
                 announce_status("正在启动 Deep Research Agent（streaming）")
                 success = await run_streaming_deep_research(args.stock_code, args.agent_url, token)

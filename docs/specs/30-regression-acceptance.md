@@ -9,13 +9,14 @@ Future changes must continue to satisfy all of the following:
 1. The skill remains self-contained and runnable from its own copied directory when bundled files are present.
 2. The wrapper continues to support both `trading` and `deep_research`.
 3. The wrapper continues to support both `streaming` and `polling`.
-4. The wrapper continues to create a distinct run directory under a parent directory.
-5. The wrapper continues to reuse cached tokens from the parent directory.
-6. The wrapper continues to prepare or reuse a skill-local Python runtime under `.runtime/env`.
-7. The wrapper continues to write `summary.json` and `run.log` into the run directory.
-8. The wrapper continues to surface the final `report_path` when one is available.
-9. The wrapper continues to retain the current run directory and the parent directory after execution.
-10. Unsupported or invalid inputs continue to fail explicitly rather than silently changing behavior.
+4. The wrapper continues to support public skill archive downloads via `--skill-id`.
+5. The wrapper continues to create a distinct run directory under a parent directory.
+6. The wrapper continues to reuse cached tokens from the parent directory for agent execution.
+7. The wrapper continues to prepare or reuse a skill-local Python runtime under `.runtime/env`.
+8. The wrapper continues to write `summary.json` and `run.log` into the run directory.
+9. The wrapper continues to surface the final `report_path` when one is available.
+10. The wrapper continues to retain the current run directory and the parent directory after execution.
+11. Unsupported or invalid inputs continue to fail explicitly rather than silently changing behavior.
 
 ## Required Manual Review Questions
 
@@ -23,6 +24,7 @@ Any change touching the wrapper or client dispatch code should be reviewed again
 
 - Does the change alter the accepted CLI inputs or mode names?
 - Does the change remove or rename one of the four supported agent/mode combinations?
+- Does the change remove or alter public skill archive download behavior?
 - Does the change change where tokens, logs, summaries, or reports are written?
 - Does the change break copied-skill execution outside the original source repo?
 - Does the change weaken local runtime reuse or automatic runtime update behavior?
@@ -40,6 +42,7 @@ The repository should maintain executable checks for these behaviors:
 - token cache precedence and persistence
 - runtime selection precedence and local runtime reuse
 - supported dispatch paths for all four combinations
+- public skill archive download path and output directory
 - `summary.json` field contract
 - `run.log` tee behavior
 - run directory retention

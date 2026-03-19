@@ -145,11 +145,11 @@ class RunAgentClientTests(unittest.TestCase):
         self.assertTrue(self.module.AGENTS_CLIENT_DIR.is_dir())
         self.assertTrue(self.module.REQUIREMENTS_FILE.is_file())
 
-    def test_validate_skill_layout_fails_cleanly_when_bundled_files_missing(self):
+    def test_validate_agent_layout_fails_cleanly_when_bundled_files_missing(self):
         with mock.patch.object(self.module, "AGENTS_CLIENT_DIR", Path("/tmp/missing-agents-client")), \
              mock.patch.object(self.module, "REQUIREMENTS_FILE", Path("/tmp/missing-requirements.txt")):
             with self.assertRaises(SystemExit):
-                self.module.validate_skill_layout()
+                self.module.validate_agent_layout()
 
     def test_standalone_skill_copy_imports_without_parent_repo(self):
         skill_root = MODULE_PATH.parents[1]

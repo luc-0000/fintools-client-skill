@@ -1,6 +1,6 @@
 # Runtime Contract Baseline
 
-This document records the current runtime contract implemented by the local wrapper. It is narrower than a product spec and should be treated as a compatibility contract for future refactors.
+This document records the current runtime contract implemented by the agent wrapper `scripts/run_agent_client.py`. It is narrower than a product spec and should be treated as a compatibility contract for future refactors.
 
 ## Bundled Layout Contract
 
@@ -16,7 +16,7 @@ If `agents_client/` or `requirements.txt` is missing, startup must fail clearly 
 
 ## Input Contract
 
-The top-level wrapper currently requires:
+The top-level agent wrapper currently requires:
 
 - `--agent-type`
 - `--mode`
@@ -67,7 +67,7 @@ The wrapper must not directly reuse the parent directory as the run directory.
 
 ## Token Contract
 
-Token resolution order is currently:
+Token resolution order is currently used for agent execution only:
 
 1. `--access-token`
 2. `FINTOOLS_ACCESS_TOKEN` environment variable

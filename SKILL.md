@@ -1,6 +1,6 @@
 ---
 name: fintools-agent-client
-description: Run the Fintools remote agent clients from this repository with a skill-local runtime environment and persistent output export. Use when Codex needs to execute the local `agent-client-template` project for Deep Research or Trading tasks, choose between streaming and polling modes, validate required inputs, create or reuse a run directory, fall back to a conda environment if Python 3.10+ is unavailable, and preserve reports/results for the user.
+description: Run the Fintools remote agent clients from this repository with a skill-local runtime environment and persistent output export. Use when Codex needs to execute bundled Deep Research or Trading clients, choose between streaming and polling modes, validate required inputs, create or reuse a run directory, fall back to a conda environment if Python 3.10+ is unavailable, and preserve reports/results for the user.
 ---
 
 # Fintools Agent Client
@@ -14,7 +14,7 @@ Use this skill to run the repository's Deep Research or Trading client with a pr
 - Reuse a local Python environment under the skill directory
 - Automatically install or update dependencies when the local runtime is missing or stale
 - Use only files bundled inside this skill directory
-- Execute the selected mode
+- Execute the selected agent mode
 - Preserve the outputs for the user and report where they were written
 
 ## Protected Upstream Code
@@ -25,9 +25,16 @@ The `agents_client/` directory is treated as protected upstream code in this rep
 - Prefer making behavior, logging, runtime, packaging, and test changes in `scripts/`, `docs/`, and `tests/`.
 - Only change `agents_client/` when there is an explicit requirement and a deliberate decision to modify upstream client behavior.
 
+## Scope Boundary
+
+This document is the contract for agent execution only.
+
+- Agent execution targets: `trading` and `deep_research`
+- Public skill archive download is handled separately by `scripts/download_skill.py`
+
 ## Quick Start
 
-Run the wrapper script instead of calling the repository modules directly:
+Run the agent wrapper script instead of calling the repository modules directly:
 
 ```bash
 python3 fintools-agent-client/scripts/run_agent_client.py \
@@ -42,6 +49,8 @@ Store `FINTOOLS_ACCESS_TOKEN` in the parent directory after the first successful
 If you run the optional streaming probe, keep its output under the same parent directory in `probe/`.
 
 ## Required Inputs
+
+Agent execution requires:
 
 - `--agent-type`: `deep_research` or `trading`
 - `--mode`: `streaming` or `polling`
@@ -64,7 +73,7 @@ User-facing prompts should say "streaming（实时模式）" and "polling（轮�
 - Polling mode: `polling`
   Explain it as: "轮询模式：不是一直保持连接，而是隔一段时间查一次任务进度，适合长时间任务。"
 
-Current repository support:
+Current repository support for agent execution:
 
 - `deep_research + streaming`: supported
 - `trading + streaming`: supported
@@ -88,7 +97,7 @@ Current repository support:
 12. If the local runtime is missing, create it automatically.
 13. If `requirements.txt` changed since the last successful install, update the local runtime automatically.
 14. Record runtime metadata in `.runtime/install-state.json`.
-15. Execute the selected client mode through the wrapper script.
+15. Use `scripts/run_agent_client.py` for agent execution.
 16. Stream intermediate results to stdout as they are produced.
 17. Run the child Python process in unbuffered mode so hosts such as OpenClaw can see progress immediately.
 18. Write a `summary.json` file in the current run directory.
@@ -144,7 +153,7 @@ This is only a compatibility suggestion for hosts with buffered subprocess outpu
 
 ## Resources
 
-- Script runner: [scripts/run_agent_client.py](./scripts/run_agent_client.py)
+- Agent runner: [scripts/run_agent_client.py](./scripts/run_agent_client.py)
 - Streaming probe: [scripts/stream_probe.py](./scripts/stream_probe.py)
 - Runtime details and current limitations: [references/runtime-contract.md](./references/runtime-contract.md)
 

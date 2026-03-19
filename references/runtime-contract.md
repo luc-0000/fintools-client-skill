@@ -10,6 +10,8 @@ This skill wraps the repository's existing client modules so another agent does 
 - manually preserve outputs for the user
 - manually reconstruct anything from the original repository after copying the skill
 
+Agent execution is handled by `scripts/run_agent_client.py`.
+
 ## Working Directory Rules
 
 - Use the provided `work_dir` as the parent directory when present.

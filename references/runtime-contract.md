@@ -13,8 +13,7 @@ This skill wraps the repository's existing client modules so another agent does 
 ## Working Directory Rules
 
 - Use the provided `work_dir` as the parent directory when present.
-- Otherwise use `/tmp/fintools-agent-client-skill-runs/` as the default parent directory when available.
-- If `/tmp` is unavailable, fall back to the system temp root.
+- Otherwise use `skill_root/.runtime/runs/` as the default parent directory.
 - Keep optional streaming probe output under the parent directory in `probe/`.
 - Keep the cached access token in the parent directory as `.fintools_access_token`.
 - Create a unique run subdirectory for each execution named like `fintools-agent-client-run-<agent_type>-<stock_code>-<mode>-<timestamp>`.
@@ -61,7 +60,7 @@ Do not silently substitute another mode for an unsupported combination.
 - Keep `summary.json`, `downloaded_reports/`, and run artifacts under the same run subdirectory.
 - Mirror terminal stdout/stderr into `run.log` in the same run subdirectory.
 - If the user wants a stable location, they should pass that path as `work_dir`.
-- If `work_dir` is not set, keep the outputs under the auto-created parent directory and report the run subdirectory path to the user.
+- If `work_dir` is not set, keep the outputs under `skill_root/.runtime/runs/` and report the run subdirectory path to the user.
 - When a report is downloaded, the caller should report both the exact `report_path` and the `downloaded_reports/` directory path to the end user.
 
 ## User-Facing Labels

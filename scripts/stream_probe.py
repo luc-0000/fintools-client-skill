@@ -9,9 +9,12 @@ from pathlib import Path
 
 
 SKILL_NAME = "fintools-agent-client"
-DEFAULT_PARENT_DIR = Path("/tmp") / "fintools-agent-client-skill-runs"
+RUNTIME_DIRNAME = ".runtime"
+DEFAULT_RUNS_DIRNAME = "runs"
 PROBE_DIRNAME = "probe"
 LOG_NAME = "stream_probe.log"
+SCRIPT_DIR = Path(__file__).resolve().parent
+SKILL_ROOT = SCRIPT_DIR.parent
 
 
 def parse_args():
@@ -22,11 +25,23 @@ def parse_args():
     return parser.parse_args()
 
 
+def runtime_root_dir():
+    path = SKILL_ROOT / RUNTIME_DIRNAME
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def default_parent_dir():
+    path = runtime_root_dir() / DEFAULT_RUNS_DIRNAME
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
 def ensure_parent_dir(raw_work_dir):
     if raw_work_dir:
         parent_dir = Path(raw_work_dir).expanduser().resolve()
     else:
-        parent_dir = DEFAULT_PARENT_DIR
+        parent_dir = default_parent_dir()
     parent_dir.mkdir(parents=True, exist_ok=True)
     return parent_dir
 

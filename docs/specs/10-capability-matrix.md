@@ -19,8 +19,8 @@ Status values:
 | CAP-005 | Skill validates bundled layout by requiring `agents_client/` and `requirements.txt` | implemented | `validate_skill_layout()` | covered |
 | CAP-006 | Skill remains runnable after being copied out of the original parent repo | implemented | skill-root-relative imports and files | covered |
 | CAP-007 | `--work-dir` is treated as parent directory, not direct run directory | implemented | `ensure_work_dir()` + `create_run_dir()` | gap |
-| CAP-008 | Default parent directory prefers `/tmp/fintools-agent-client-skill-runs` | implemented | `ensure_work_dir()` | covered |
-| CAP-009 | Fallback parent directory uses system temp root when `/tmp` is not usable | implemented | `ensure_work_dir()` | gap |
+| CAP-008 | Default parent directory is `skill_root/.runtime/runs` when `--work-dir` is not provided | implemented | `default_runs_parent_dir()` and `ensure_work_dir()` | covered |
+| CAP-009 | Streaming probe uses the same default parent directory under `skill_root/.runtime/runs` | implemented | `scripts/stream_probe.py` `default_parent_dir()` | covered |
 | CAP-010 | Each execution creates a unique run directory named `fintools-agent-client-run-*` | implemented | `create_run_dir()` | covered |
 | CAP-011 | Name collisions in the same second are resolved with `-002`, `-003`, ... | implemented | `create_run_dir()` | covered |
 | CAP-012 | Access token resolution order is CLI, env, cached parent token | implemented | `resolve_access_token()` | partially covered |
@@ -54,7 +54,6 @@ The following capabilities are part of the baseline but are not yet well protect
 
 - `CAP-004` unsupported combination failure path
 - `CAP-007` explicit proof that `--work-dir` remains the parent directory and a child run dir is created beneath it
-- `CAP-009` fallback-to-system-temp branch when `/tmp` is unusable
 - `CAP-014` runtime selection precedence across current interpreter, discovered interpreter, and conda
 - `CAP-016` automatic install/update behavior for the local runtime
 - `CAP-019` `run.log` tee behavior

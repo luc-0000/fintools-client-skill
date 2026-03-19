@@ -10,12 +10,11 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
-import tempfile
 from datetime import datetime
 
 
 SKILL_NAME = "fintools-agent-client"
-DEFAULT_PARENT_DIRNAME = "fintools-agent-client-skill-runs"
+DEFAULT_RUNS_DIRNAME = "runs"
 RUN_PREFIX = "{0}-run-".format(SKILL_NAME)
 SUMMARY_NAME = "summary.json"
 LOG_NAME = "run.log"
@@ -68,6 +67,12 @@ def runtime_root_dir():
 
 def local_runtime_dir():
     return runtime_root_dir() / RUNTIME_ENV_DIRNAME
+
+
+def default_runs_parent_dir():
+    path = runtime_root_dir() / DEFAULT_RUNS_DIRNAME
+    path.mkdir(parents=True, exist_ok=True)
+    return path
 
 
 def install_state_path():
@@ -256,15 +261,7 @@ def ensure_work_dir(raw_work_dir):
         parent_dir.mkdir(parents=True, exist_ok=True)
         return parent_dir, False
 
-    tmp_root = Path("/tmp")
-    if tmp_root.exists() and tmp_root.is_dir() and os.access(tmp_root, os.W_OK | os.X_OK):
-        parent_dir = tmp_root / DEFAULT_PARENT_DIRNAME
-        parent_dir.mkdir(parents=True, exist_ok=True)
-        return parent_dir, True
-
-    parent_dir = Path(tempfile.gettempdir()) / DEFAULT_PARENT_DIRNAME
-    parent_dir.mkdir(parents=True, exist_ok=True)
-    return parent_dir, True
+    return default_runs_parent_dir(), True
 
 
 def run_command(cmd, env=None, cwd=None):

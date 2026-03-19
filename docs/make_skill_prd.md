@@ -27,8 +27,7 @@
 - 无论使用临时工作目录还是本地 conda 兜底环境，任务结束后都要按清理规则处理
 - Skill 支持可选 `work_dir` 参数
 - `work_dir` 表示该 skill 的主目录，而不是单次运行目录
-- 如果用户未提供 `work_dir`，优先使用默认主目录 `/tmp/fintools-agent-client-skill-runs/`
-- 如果 `/tmp` 不可用，再回退到系统临时目录
+- 如果用户未提供 `work_dir`，默认主目录为 skill 目录下的 `.runtime/runs/`
 - 主目录下应包含单次 run 目录
 - skill 目录下应包含本地运行环境目录 `.runtime/env/`
 - 如果需要流式输出诊断或探针，其输出目录固定为主目录下的 `probe/`
@@ -82,8 +81,7 @@
 
 1. 确定工作目录：
    - 用户提供 `work_dir` 时，将其作为主目录
-   - 用户未提供时，优先使用默认主目录 `/tmp/fintools-agent-client-skill-runs/`
-   - 如果 `/tmp` 不可用，再回退到系统临时目录
+   - 用户未提供时，默认主目录为 skill 目录下的 `.runtime/runs/`
 2. 在主目录下创建本次独立 run 子目录，例如 `run-<agent_type>-<stock_code>-<mode>-<timestamp>`
    - 如果同一秒内目录名冲突，可在末尾追加顺序号，例如 `-002`
 3. 启动时打印主目录和本次 run 目录，以及这些目录是“用户指定”还是“自动创建”

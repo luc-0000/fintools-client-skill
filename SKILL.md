@@ -68,8 +68,7 @@ Current repository support:
 
 1. Determine the working directory.
 2. If `--work-dir` is provided, use it as the parent directory for runs.
-3. Otherwise use `/tmp/fintools-agent-client-skill-runs/` when available.
-4. If `/tmp` is unavailable, fall back to the system temp root.
+3. Otherwise use `skill_root/.runtime/runs/` as the default parent directory.
 5. Create a unique run subdirectory such as `fintools-agent-client-run-trading-600519-streaming-20260312-120000`.
    If the same name already exists within the same second, append a sequence suffix such as `-002`.
 6. Print both the parent directory and the current run directory immediately.
@@ -113,7 +112,7 @@ The working directory should contain at least:
 - `downloaded_reports/` when a report was downloaded
 
 Use `--work-dir` as the only user-facing directory parameter. Do not make the user choose separate runtime and output locations.
-Default auto-created parent directories should prefer `/tmp/fintools-agent-client-skill-runs/`, with each run stored under its own `fintools-agent-client-run-*` subdirectory.
+Default auto-created parent directories should use `skill_root/.runtime/runs/`, with each run stored under its own `fintools-agent-client-run-*` subdirectory.
 Keep the persistent runtime under `skill_root/.runtime/env/` and write runtime metadata into `skill_root/.runtime/install-state.json`.
 Keep optional probe output under `probe/` in the same parent directory instead of creating unrelated temp directories.
 Cache the access token in the parent directory so the user normally provides it only once per parent directory.
@@ -153,7 +152,7 @@ python3 fintools-agent-client/scripts/run_agent_client.py \
   --mode streaming \
   --stock-code 600519 \
   --agent-url http://127.0.0.1:8000/api/v1/agents/69/a2a/ \
-  --work-dir /tmp/fintools-agent-client-skill-runs
+  --work-dir /Users/example/fintools-agent-client-runs
 ```
 
 Trading, polling mode with an explicit working directory:

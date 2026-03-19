@@ -201,27 +201,16 @@ class RunAgentClientTests(unittest.TestCase):
     def test_auto_work_dir_prefix_contains_skill_name(self):
         work_dir, auto_created = self.module.ensure_work_dir(None)
         self.assertTrue(auto_created)
-        self.assertEqual(Path(work_dir).name, "fintools-agent-client-skill-runs")
+        self.assertEqual(Path(work_dir).name, "runs")
+        self.assertEqual(Path(work_dir).parent, self.module.SKILL_ROOT / ".runtime")
 
-    def test_auto_work_dir_prefers_tmp_when_available(self):
-        with mock.patch.object(self.module.os, "access", return_value=True):
-            work_dir, auto_created = self.module.ensure_work_dir(None)
-        self.assertTrue(auto_created)
-        self.assertEqual(Path(work_dir).parent, Path("/tmp"))
-        self.assertEqual(Path(work_dir).name, "fintools-agent-client-skill-runs")
-
-    def test_auto_work_dir_falls_back_to_system_temp_when_tmp_unavailable(self):
-        with tempfile.TemporaryDirectory(prefix="fintools-agent-client-temp-root-") as tmpdir:
-            with mock.patch.object(self.module.os, "access", return_value=False), \
-                 mock.patch.object(self.module.tempfile, "gettempdir", return_value=tmpdir):
-                work_dir, auto_created = self.module.ensure_work_dir(None)
-
-        self.assertTrue(auto_created)
-        self.assertEqual(Path(work_dir), Path(tmpdir) / "fintools-agent-client-skill-runs")
+    def test_default_runs_parent_dir_is_under_skill_runtime_directory(self):
+        runs_dir = self.module.default_runs_parent_dir()
+        self.assertEqual(runs_dir, self.module.SKILL_ROOT / ".runtime" / "runs")
 
     def test_stream_probe_uses_same_default_parent_dir(self):
         parent_dir = self.stream_probe.ensure_parent_dir(None)
-        self.assertEqual(parent_dir, Path("/tmp/fintools-agent-client-skill-runs"))
+        self.assertEqual(parent_dir, self.stream_probe.SKILL_ROOT / ".runtime" / "runs")
 
     def test_stream_probe_keeps_output_under_probe_directory(self):
         with tempfile.TemporaryDirectory(prefix="fintools-agent-client-parent-") as tmpdir:

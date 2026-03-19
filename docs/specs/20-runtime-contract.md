@@ -57,8 +57,7 @@ When the caller provides `--work-dir`, that path is treated as the parent direct
 
 When the caller does not provide `--work-dir`:
 
-- prefer `/tmp/fintools-agent-client-skill-runs`
-- otherwise use `tempfile.gettempdir()/fintools-agent-client-skill-runs`
+- use `skill_root/.runtime/runs`
 
 Each execution creates a child run directory under the parent directory:
 

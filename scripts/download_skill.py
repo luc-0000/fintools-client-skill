@@ -3,6 +3,7 @@
 
 import argparse
 import asyncio
+from email.message import Message
 import json
 import os
 from pathlib import Path
@@ -75,6 +76,17 @@ def public_skill_download_url(skill_id, public_base_url):
     return "{0}/skills/{1}/download".format(base, encoded_skill_id)
 
 
+def extract_archive_filename(content_disposition, skill_id):
+    message = Message()
+    message["content-disposition"] = content_disposition or ""
+    filename = message.get_filename()
+    if filename:
+        filename = Path(filename).name
+        if filename:
+            return filename
+    return "skill-{0}.zip".format(skill_id)
+
+
 def download_public_skill(skill_id, public_base_url, output_dir):
     output_path = skill_downloads_dir(output_dir)
     url = public_skill_download_url(skill_id, public_base_url)
@@ -85,10 +97,7 @@ def download_public_skill(skill_id, public_base_url, output_dir):
         with urllib_request.urlopen(request) as response:
             content = response.read()
             content_disposition = response.headers.get("content-disposition", "")
-            if "filename=" in content_disposition:
-                filename = content_disposition.split("filename=")[1].strip().strip('"')
-            else:
-                filename = "skill-{0}.zip".format(skill_id)
+            filename = extract_archive_filename(content_disposition, skill_id)
             file_path = output_path / filename
             file_path.write_bytes(content)
             announce_result("Downloaded skill archive: {0}".format(file_path))

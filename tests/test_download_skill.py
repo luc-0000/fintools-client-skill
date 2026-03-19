@@ -28,6 +28,20 @@ class DownloadPublicSkillTests(unittest.TestCase):
         url = self.module.public_skill_download_url("102", "http://example.com/api/v1/public/")
         self.assertEqual(url, "http://example.com/api/v1/public/skills/102/download")
 
+    def test_extract_archive_filename_uses_content_disposition_filename(self):
+        filename = self.module.extract_archive_filename(
+            'attachment; filename="new-skill-create11777-main.zip"',
+            "102",
+        )
+        self.assertEqual(filename, "new-skill-create11777-main.zip")
+
+    def test_extract_archive_filename_supports_filename_star(self):
+        filename = self.module.extract_archive_filename(
+            "attachment; filename*=UTF-8''new-skill-create11777-main.zip",
+            "102",
+        )
+        self.assertEqual(filename, "new-skill-create11777-main.zip")
+
     def test_validate_download_layout_does_not_require_agents_client(self):
         with mock.patch.object(self.module, "REQUIREMENTS_FILE", Path("/tmp/real-req.txt")):
             with mock.patch.object(Path, "is_file", return_value=True):

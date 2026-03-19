@@ -32,7 +32,7 @@ Status values:
 | CAP-018 | Child execution exports runtime metadata via `FINTOOLS_RUNTIME_*` env vars | implemented | `main()` child env | partially covered |
 | CAP-019 | `run.log` is created in the run directory and mirrors stdout/stderr | implemented | `TeeStream` + `run_inside_env()` | gap |
 | CAP-020 | `summary.json` is always written with stable top-level fields | implemented | `write_summary()` + `run_inside_env()` | partially covered |
-| CAP-021 | `summary.json` includes `report_path`, `log_path`, `run_dir`, success/error, cleanup flags | implemented | `run_inside_env()` summary payload | partially covered |
+| CAP-021 | `summary.json` includes `report_path`, `log_path`, `run_dir`, runtime metadata, success, and error | implemented | `run_inside_env()` summary payload | partially covered |
 | CAP-022 | Streaming `trading` path is dispatched through `agents_client.streaming.trading_agent_client_stream` | implemented | `run_streaming_trading()` | covered indirectly |
 | CAP-023 | Streaming `deep_research` path is dispatched through `agents_client.streaming.dr_agent_client_stream` | implemented | `run_streaming_deep_research()` | gap |
 | CAP-024 | Polling `trading` path is dispatched through `agents_client.db_polling.trading_agent_client_db` | implemented | `run_polling_trading()` | partially covered |
@@ -40,13 +40,12 @@ Status values:
 | CAP-026 | Polling runs pass `<run-dir>/downloaded_reports` as report output directory | implemented | `run_inside_env()` polling branches | covered for trading, partial overall |
 | CAP-027 | Streaming success attempts to discover latest file under `<run-dir>/downloaded_reports` | implemented | `find_downloaded_report()` + streaming branches | covered |
 | CAP-028 | Polling success propagates `downloaded_file` into `summary.json` as `report_path` | implemented | polling branches in `run_inside_env()` | covered |
-| CAP-029 | Cleanup only removes the current run directory when `--cleanup` is set | implemented | `maybe_cleanup()` | gap |
-| CAP-030 | Parent directory is never auto-deleted by the wrapper | implemented | directory lifecycle in `main()`/`run_inside_env()` | gap |
-| CAP-031 | Final user-visible result emits `[result]` lines for summary path, report path, log path, run dir, success | implemented | `announce_result()` calls in `run_inside_env()` | gap |
-| CAP-032 | Polling client can resume an existing task via `task_id` | implemented | `recover_task()` and `run_stock_agent_client()` | gap |
-| CAP-033 | Polling client downloads final reports after completed status | implemented | `print_report_download_result()` | partially covered |
-| CAP-034 | Report downloading handles 404 and 410 responses without raising uncaught errors | implemented | `ReportDownloader.download_zip()` | gap |
-| CAP-035 | Streaming probe output is kept under `<parent-dir>/probe/` | implemented | `scripts/stream_probe.py` helpers | partially covered |
+| CAP-029 | Parent directory is never auto-deleted by the wrapper | implemented | directory lifecycle in `main()`/`run_inside_env()` | gap |
+| CAP-030 | Final user-visible result emits `[result]` lines for summary path, report path, log path, run dir, success | implemented | `announce_result()` calls in `run_inside_env()` | gap |
+| CAP-031 | Polling client can resume an existing task via `task_id` | implemented | `recover_task()` and `run_stock_agent_client()` | gap |
+| CAP-032 | Polling client downloads final reports after completed status | implemented | `print_report_download_result()` | partially covered |
+| CAP-033 | Report downloading handles 404 and 410 responses without raising uncaught errors | implemented | `ReportDownloader.download_zip()` | gap |
+| CAP-034 | Streaming probe output is kept under `<parent-dir>/probe/` | implemented | `scripts/stream_probe.py` helpers | partially covered |
 
 ## Current Test Gap Priorities
 
@@ -57,11 +56,10 @@ The following capabilities are part of the baseline but are not yet well protect
 - `CAP-014` runtime selection precedence across current interpreter, discovered interpreter, and conda
 - `CAP-016` automatic install/update behavior for the local runtime
 - `CAP-019` `run.log` tee behavior
-- `CAP-029` cleanup removes only the run dir
-- `CAP-030` parent dir is preserved after cleanup
-- `CAP-031` final result output contract
-- `CAP-032` task recovery branches for `completed`, `failed`, `not found`, and polling continuation
-- `CAP-034` report downloader behavior for 404 and 410
+- `CAP-029` parent directory preservation
+- `CAP-030` final result output contract
+- `CAP-031` task recovery branches for `completed`, `failed`, `not found`, and polling continuation
+- `CAP-033` report downloader behavior for 404 and 410
 
 ## Notes On Coverage Labels
 

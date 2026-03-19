@@ -12,9 +12,9 @@ Future changes must continue to satisfy all of the following:
 4. The wrapper continues to create a distinct run directory under a parent directory.
 5. The wrapper continues to reuse cached tokens from the parent directory.
 6. The wrapper continues to prepare or reuse a skill-local Python runtime under `.runtime/env`.
-7. The wrapper continues to write `summary.json` and `run.log` into the run directory when cleanup is not requested.
+7. The wrapper continues to write `summary.json` and `run.log` into the run directory.
 8. The wrapper continues to surface the final `report_path` when one is available.
-9. Cleanup continues to remove only the current run directory, not the parent directory.
+9. The wrapper continues to retain the current run directory and the parent directory after execution.
 10. Unsupported or invalid inputs continue to fail explicitly rather than silently changing behavior.
 
 ## Required Manual Review Questions
@@ -26,7 +26,7 @@ Any change touching the wrapper or client dispatch code should be reviewed again
 - Does the change change where tokens, logs, summaries, or reports are written?
 - Does the change break copied-skill execution outside the original source repo?
 - Does the change weaken local runtime reuse or automatic runtime update behavior?
-- Does the change change the meaning of `--cleanup`?
+- Does the change change whether run artifacts are retained after execution?
 - Does the change stop exposing `report_path` or `run.log` to the caller?
 
 If any answer is yes, the specs and tests must be updated in the same change.
@@ -42,7 +42,7 @@ The repository should maintain executable checks for these behaviors:
 - supported dispatch paths for all four combinations
 - `summary.json` field contract
 - `run.log` tee behavior
-- cleanup scope
+- run directory retention
 - report downloader error handling
 - polling task recovery branches
 
@@ -51,7 +51,7 @@ The repository should maintain executable checks for these behaviors:
 The current codebase is most exposed to accidental regression in these areas because tests are incomplete:
 
 - runtime discovery and local runtime preparation
-- cleanup and directory lifecycle
+- directory lifecycle
 - log tee behavior
 - unsupported-combination failure behavior
 - polling recovery branches
@@ -62,11 +62,11 @@ The current codebase is most exposed to accidental regression in these areas bec
 Add tests in roughly this order:
 
 1. invalid combination and invalid runtime selection branches
-2. cleanup scope and parent preservation
+2. run directory retention and parent preservation
 3. `run.log` tee behavior and final `[result]` lines
 4. polling recovery matrix
 5. `ReportDownloader.download_zip()` success, 404, and 410 handling
-6. fallback temp-dir branch when `/tmp` is unavailable
+6. stream probe default path and log retention behavior
 
 ## Completion Standard For Future Refactors
 

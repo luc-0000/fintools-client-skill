@@ -28,7 +28,6 @@ Optional inputs currently supported:
 - `--access-token`
 - `--work-dir`
 - `--task-id`
-- `--cleanup`
 
 Internal-only wrapper flags:
 
@@ -140,8 +139,6 @@ For streaming runs, the wrapper currently looks for the most recently modified f
 - `log_path`
 - `report_path`
 - `success`
-- `cleanup_requested`
-- `cleanup_performed`
 - `error`
 
 `report_path` may be `null` when no report was downloaded or discovered.
@@ -155,10 +152,8 @@ The wrapper also emits status/result markers intended for host integration:
 - status prefix: `[status] `
 - result prefix: `[result] `
 
-## Cleanup Contract
-
-`--cleanup` currently removes only the current run directory.
+## Directory Retention Contract
 
 The parent directory is not automatically removed by the wrapper.
 
-If cleanup occurs, the run directory may no longer exist after process completion. If cleanup does not occur, `summary.json` is expected to remain on disk.
+The current run directory is retained after execution so `summary.json`, `run.log`, and downloaded reports remain inspectable.

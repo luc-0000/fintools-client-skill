@@ -286,7 +286,6 @@ class RunAgentClientTests(unittest.TestCase):
                 "agent_url": "http://example.com/a2a/",
                 "access_token": None,
                 "task_id": None,
-                "cleanup": False,
             },
         )()
         argv = self.module.build_reexec_args(args, Path("/tmp/work"), auto_created=True)
@@ -313,7 +312,6 @@ class RunAgentClientTests(unittest.TestCase):
                         "access_token": None,
                         "work_dir": None,
                         "task_id": None,
-                        "cleanup": False,
                         "_in_env": False,
                         "_work_dir_auto_created": False,
                     },
@@ -344,7 +342,6 @@ class RunAgentClientTests(unittest.TestCase):
                     "access_token": None,
                     "work_dir": str(parent_dir),
                     "task_id": None,
-                    "cleanup": False,
                     "_in_env": False,
                     "_work_dir_auto_created": False,
                 },
@@ -434,7 +431,6 @@ class RunAgentClientTests(unittest.TestCase):
                     "access_token": None,
                     "work_dir": str(work_dir),
                     "task_id": None,
-                    "cleanup": False,
                     "_in_env": True,
                     "_work_dir_auto_created": False,
                 },
@@ -459,7 +455,6 @@ class RunAgentClientTests(unittest.TestCase):
                     "access_token": None,
                     "work_dir": str(work_dir),
                     "task_id": None,
-                    "cleanup": False,
                     "_in_env": True,
                     "_work_dir_auto_created": False,
                 },
@@ -491,7 +486,6 @@ class RunAgentClientTests(unittest.TestCase):
                     "access_token": None,
                     "work_dir": str(work_dir),
                     "task_id": None,
-                    "cleanup": False,
                     "_in_env": True,
                     "_work_dir_auto_created": False,
                 },
@@ -527,7 +521,6 @@ class RunAgentClientTests(unittest.TestCase):
                     "access_token": None,
                     "work_dir": str(work_dir),
                     "task_id": None,
-                    "cleanup": False,
                     "_in_env": True,
                     "_work_dir_auto_created": False,
                 },
@@ -560,36 +553,6 @@ class RunAgentClientTests(unittest.TestCase):
             self.assertIn("[result] Run directory:", stdout_text)
             self.assertIn("[result] Run success: yes", stdout_text)
 
-    def test_run_inside_env_cleanup_removes_only_run_dir(self):
-        with tempfile.TemporaryDirectory(prefix="fintools-agent-client-parent-") as tmpdir:
-            parent_dir = Path(tmpdir)
-            work_dir = parent_dir / "fintools-agent-client-run-trading-600519-streaming-20260312-120000"
-            work_dir.mkdir()
-            args = type(
-                "Args",
-                (),
-                {
-                    "agent_type": "trading",
-                    "mode": "streaming",
-                    "stock_code": "600519",
-                    "agent_url": "http://example.com/a2a/",
-                    "access_token": None,
-                    "work_dir": str(work_dir),
-                    "task_id": None,
-                    "cleanup": True,
-                    "_in_env": True,
-                    "_work_dir_auto_created": False,
-                },
-            )()
-
-            with mock.patch.object(self.module, "resolve_access_token", return_value="token"), \
-                 mock.patch.object(self.module, "run_streaming_trading", new=mock.AsyncMock(return_value=True)):
-                result = self.module.asyncio.run(self.module.run_inside_env(args))
-
-            self.assertEqual(result, 0)
-            self.assertTrue(parent_dir.exists())
-            self.assertFalse(work_dir.exists())
-
     def test_run_inside_env_uses_deep_research_polling_client(self):
         with tempfile.TemporaryDirectory(prefix="fintools-agent-client-run-") as tmpdir:
             work_dir = Path(tmpdir)
@@ -605,7 +568,6 @@ class RunAgentClientTests(unittest.TestCase):
                     "access_token": None,
                     "work_dir": str(work_dir),
                     "task_id": "task-123",
-                    "cleanup": False,
                     "_in_env": True,
                     "_work_dir_auto_created": False,
                 },
@@ -642,7 +604,6 @@ class RunAgentClientTests(unittest.TestCase):
                     "access_token": None,
                     "work_dir": str(work_dir),
                     "task_id": "task-456",
-                    "cleanup": False,
                     "_in_env": True,
                     "_work_dir_auto_created": False,
                 },

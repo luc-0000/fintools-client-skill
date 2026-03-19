@@ -98,7 +98,6 @@ def parse_args():
     parser.add_argument("--access-token")
     parser.add_argument("--work-dir")
     parser.add_argument("--task-id")
-    parser.add_argument("--cleanup", action="store_true")
     parser.add_argument("--_in-env", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--_work-dir-auto-created", action="store_true", help=argparse.SUPPRESS)
     return parser.parse_args()
@@ -406,8 +405,6 @@ def build_reexec_args(args, work_dir, auto_created):
         argv.extend(["--access-token", args.access_token])
     if args.task_id:
         argv.extend(["--task-id", args.task_id])
-    if args.cleanup:
-        argv.append("--cleanup")
     return argv
 
 
@@ -449,14 +446,6 @@ async def run_polling_deep_research(stock_code, agent_url, token, task_id, repor
         report_output_dir=report_output_dir,
     )
     return result
-
-
-def maybe_cleanup(work_dir, cleanup_requested):
-    if not cleanup_requested:
-        return False
-    shutil.rmtree(work_dir, ignore_errors=True)
-    print("Cleaned up run directory: {0}".format(work_dir))
-    return True
 
 
 def write_summary(work_dir, payload):
@@ -568,21 +557,11 @@ async def run_inside_env(args):
         "log_path": str(run_log),
         "report_path": report_path,
         "success": bool(success),
-        "cleanup_requested": bool(args.cleanup),
-        "cleanup_performed": False,
         "error": error,
     }
-    summary_path = write_summary(work_dir, summary)
-    cleanup_planned = bool(args.cleanup)
-    summary["cleanup_performed"] = cleanup_planned
     announce_status("正在写入 summary.json")
     summary_path = write_summary(work_dir, summary)
-    cleanup_performed = maybe_cleanup(work_dir, args.cleanup)
-
-    if not cleanup_performed:
-        summary["cleanup_performed"] = False
-        write_summary(work_dir, summary)
-        announce_result("Summary written to: {0}".format(summary_path))
+    announce_result("Summary written to: {0}".format(summary_path))
 
     announce_result("Report path: {0}".format(report_path or "none"))
     announce_result("Run log: {0}".format(run_log))

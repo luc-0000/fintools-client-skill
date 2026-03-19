@@ -1,6 +1,6 @@
 ---
 name: fintools-agent-client
-description: Run the Fintools remote agent clients from this repository with a temporary isolated workspace, Python runtime selection, and persistent output export. Use when Codex needs to execute the local `agent-client-template` project for Deep Research or Trading tasks, choose between streaming and polling modes, validate required inputs, create a temporary work directory, fall back to a conda environment if Python 3.10+ is unavailable, and preserve reports/results for the user.
+description: Run the Fintools remote agent clients from this repository with a skill-local runtime environment and persistent output export. Use when Codex needs to execute the local `agent-client-template` project for Deep Research or Trading tasks, choose between streaming and polling modes, validate required inputs, create or reuse a run directory, fall back to a conda environment if Python 3.10+ is unavailable, and preserve reports/results for the user.
 ---
 
 # Fintools Agent Client
@@ -16,6 +16,14 @@ Use this skill to run the repository's Deep Research or Trading client with a pr
 - Use only files bundled inside this skill directory
 - Execute the selected mode
 - Preserve the outputs for the user and report where they were written
+
+## Protected Upstream Code
+
+The `agents_client/` directory is treated as protected upstream code in this repository.
+
+- Do not modify `agents_client/` by default.
+- Prefer making behavior, logging, runtime, packaging, and test changes in `scripts/`, `docs/`, and `tests/`.
+- Only change `agents_client/` when there is an explicit requirement and a deliberate decision to modify upstream client behavior.
 
 ## Quick Start
 
@@ -45,7 +53,6 @@ Optional:
 
 - `--work-dir`: user-specified parent directory for all runs
 - `--task-id`: resume an existing polling task
-- `--cleanup`: delete only the current run subdirectory after the run finishes; never delete the parent directory
 
 Fail fast when any required input is missing. Do not rely on hard-coded default stock codes or agent URLs.
 User-facing prompts should say "streaming（实时模式）" and "polling（轮询模式）".
@@ -69,26 +76,26 @@ Current repository support:
 1. Determine the working directory.
 2. If `--work-dir` is provided, use it as the parent directory for runs.
 3. Otherwise use `skill_root/.runtime/runs/` as the default parent directory.
-5. Create a unique run subdirectory such as `fintools-agent-client-run-trading-600519-streaming-20260312-120000`.
+4. Create a unique run subdirectory such as `fintools-agent-client-run-trading-600519-streaming-20260312-120000`.
    If the same name already exists within the same second, append a sequence suffix such as `-002`.
-6. Print both the parent directory and the current run directory immediately.
-7. Check whether the current Python satisfies 3.10+.
-8. Validate that the skill directory already contains bundled `agents_client/` and `requirements.txt`.
-9. Fail immediately if the bundled runtime files are missing.
-10. Read `FINTOOLS_ACCESS_TOKEN` from the CLI or environment; if absent, reuse the cached token stored in the parent directory.
-11. Cache the token in the parent directory after the first successful lookup.
-12. Check the skill-local runtime directory under `.runtime/env/`.
-13. If the local runtime is missing, create it automatically.
-14. If `requirements.txt` changed since the last successful install, update the local runtime automatically.
-15. Record runtime metadata in `.runtime/install-state.json`.
-16. Execute the selected client mode through the wrapper script.
-17. Stream intermediate results to stdout as they are produced.
-18. Run the child Python process in unbuffered mode so hosts such as OpenClaw can see progress immediately.
-19. Write a `summary.json` file in the current run directory.
-20. Write `run.log` in the current run directory while still showing the same output in the terminal.
-21. Keep reports, summary, logs, and runtime artifacts under the same run directory.
-22. Only delete the current run directory when the user explicitly requested cleanup.
-23. Never delete the parent directory automatically.
+5. Print both the parent directory and the current run directory immediately.
+6. Check whether the current Python satisfies 3.10+.
+7. Validate that the skill directory already contains bundled `agents_client/` and `requirements.txt`.
+8. Fail immediately if the bundled runtime files are missing.
+9. Read `FINTOOLS_ACCESS_TOKEN` from the CLI or environment; if absent, reuse the cached token stored in the parent directory.
+10. Cache the token in the parent directory after the first successful lookup.
+11. Check the skill-local runtime directory under `.runtime/env/`.
+12. If the local runtime is missing, create it automatically.
+13. If `requirements.txt` changed since the last successful install, update the local runtime automatically.
+14. Record runtime metadata in `.runtime/install-state.json`.
+15. Execute the selected client mode through the wrapper script.
+16. Stream intermediate results to stdout as they are produced.
+17. Run the child Python process in unbuffered mode so hosts such as OpenClaw can see progress immediately.
+18. Write a `summary.json` file in the current run directory.
+19. Write `run.log` in the current run directory while still showing the same output in the terminal.
+20. Keep reports, summary, logs, and runtime artifacts under the same run directory.
+21. Keep the current run directory after the run finishes.
+22. Never delete the parent directory automatically.
 
 ## Output Contract
 
@@ -101,7 +108,6 @@ Always tell the user:
 - Whether it was user-specified or auto-created
 - Whether reports were downloaded
 - Whether outputs were persisted elsewhere
-- Whether cleanup happened
 
 The final user-facing result must explicitly include `report_path` when present. Reporting only the run directory is not sufficient.
 

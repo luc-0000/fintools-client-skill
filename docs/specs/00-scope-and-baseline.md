@@ -16,6 +16,14 @@ This baseline covers the current bundled skill implementation centered on:
 - `agents_client/utils.py`
 - `scripts/stream_probe.py`
 
+## Protected Boundary
+
+The `agents_client/` directory is a protected upstream boundary for this repository's first baseline.
+
+- Do not modify files under `agents_client/` by default.
+- Wrapper-level changes should be made in `scripts/`, `docs/`, and `tests/` whenever practical.
+- If a future change intentionally modifies `agents_client/`, that decision should be explicit and documented as an upstream-behavior change rather than a wrapper-only change.
+
 It also uses the following as supporting contract references, but code remains the source of truth:
 
 - `SKILL.md`

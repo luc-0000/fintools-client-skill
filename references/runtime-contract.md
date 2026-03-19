@@ -20,7 +20,6 @@ This skill wraps the repository's existing client modules so another agent does 
 - If the same name already exists, append a numeric sequence such as `-002`.
 - Write the environment, `summary.json`, `run.log`, and `downloaded_reports/` into that run subdirectory.
 - Do not delete the parent directory automatically.
-- Delete only the current run subdirectory when the user explicitly requested cleanup.
 
 ## Standalone Layout
 
@@ -89,6 +88,4 @@ User-facing explanation for polling mode:
 - `log_path`
 - `report_path`
 - `success`
-- `cleanup_requested`
-- `cleanup_performed`
 - `error`

@@ -100,3 +100,22 @@ class TradingAgentDatabaseTests(unittest.TestCase):
 
             column_names = [column[1] for column in columns]
             self.assertIn("mode", column_names)
+
+    def test_save_run_stores_action_only_payload_as_plain_string(self):
+        with tempfile.TemporaryDirectory(prefix="trading-agent-db-") as tmpdir:
+            db_path = Path(tmpdir) / "trading_agent.db"
+            database = self.module.TradingAgentDatabase(db_path)
+
+            database.save_run(
+                stock_code="600519",
+                mode="streaming",
+                result_payload={"action": "buy"},
+                run_id="run-2",
+            )
+
+            with sqlite3.connect(db_path) as conn:
+                raw_result = conn.execute(
+                    "SELECT raw_result FROM trading_agent_runs WHERE run_id = 'run-2'"
+                ).fetchone()[0]
+
+            self.assertEqual(raw_result, "buy")

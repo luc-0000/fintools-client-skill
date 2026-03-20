@@ -71,6 +71,9 @@ def normalize_action(payload: Any) -> Action:
 
 
 def serialize_raw_result(payload: Any) -> str:
+    if isinstance(payload, dict):
+        if set(payload.keys()) == {"action"} and isinstance(payload.get("action"), str):
+            return payload["action"]
     if isinstance(payload, str):
         return payload
     return json.dumps(payload, ensure_ascii=False, sort_keys=True)
@@ -108,6 +111,26 @@ class TradingAgentDatabase:
                     ADD COLUMN mode TEXT NOT NULL DEFAULT 'polling'
                     """
                 )
+            rows = conn.execute(
+                """
+                SELECT id, raw_result
+                FROM trading_agent_runs
+                WHERE raw_result IS NOT NULL
+                """
+            ).fetchall()
+            for row_id, raw_result in rows:
+                normalized_raw = raw_result
+                if isinstance(raw_result, str):
+                    normalized_raw = serialize_raw_result(_json_load_if_possible(raw_result))
+                if normalized_raw != raw_result:
+                    conn.execute(
+                        """
+                        UPDATE trading_agent_runs
+                        SET raw_result = ?, updated_at = CURRENT_TIMESTAMP
+                        WHERE id = ?
+                        """,
+                        (normalized_raw, row_id),
+                    )
             conn.execute(
                 """
                 CREATE INDEX IF NOT EXISTS idx_trading_agent_runs_stock_code

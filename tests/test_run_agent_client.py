@@ -505,6 +505,71 @@ class RunAgentClientTests(unittest.TestCase):
             summary = json.loads((work_dir / "summary.json").read_text(encoding="utf-8"))
             self.assertEqual(Path(summary["report_path"]).resolve(), (reports_dir / "report.zip").resolve())
 
+    def test_run_inside_env_persists_structured_streaming_trading_result(self):
+        with tempfile.TemporaryDirectory(prefix="fintools-agent-client-run-") as tmpdir:
+            work_dir = Path(tmpdir)
+
+            args = type(
+                "Args",
+                (),
+                {
+                    "agent_type": "trading",
+                    "mode": "streaming",
+                    "stock_code": "600519",
+                    "agent_url": "http://example.com/a2a/",
+                    "access_token": None,
+                    "work_dir": str(work_dir),
+                    "task_id": None,
+                    "_in_env": True,
+                    "_work_dir_auto_created": False,
+                },
+            )()
+
+            streaming_result = {
+                "success": True,
+                "run_id": "stream-run-1",
+                "result": {"action": "buy"},
+            }
+
+            with mock.patch.object(self.module, "resolve_access_token", return_value="token"), \
+                 mock.patch.object(self.module, "run_streaming_trading", new=mock.AsyncMock(return_value=streaming_result)):
+                result = self.module.asyncio.run(self.module.run_inside_env(args))
+
+            self.assertEqual(result, 0)
+            summary = json.loads((work_dir / "summary.json").read_text(encoding="utf-8"))
+            self.assertTrue(summary["success"])
+            self.assertTrue(summary["trading_db_path"].endswith("trading_agent.db"))
+            self.assertEqual(summary["trading_run_id"], "stream-run-1")
+
+    def test_run_inside_env_keeps_bool_streaming_trading_compatible(self):
+        with tempfile.TemporaryDirectory(prefix="fintools-agent-client-run-") as tmpdir:
+            work_dir = Path(tmpdir)
+
+            args = type(
+                "Args",
+                (),
+                {
+                    "agent_type": "trading",
+                    "mode": "streaming",
+                    "stock_code": "600519",
+                    "agent_url": "http://example.com/a2a/",
+                    "access_token": None,
+                    "work_dir": str(work_dir),
+                    "task_id": None,
+                    "_in_env": True,
+                    "_work_dir_auto_created": False,
+                },
+            )()
+
+            with mock.patch.object(self.module, "resolve_access_token", return_value="token"), \
+                 mock.patch.object(self.module, "run_streaming_trading", new=mock.AsyncMock(return_value=True)):
+                result = self.module.asyncio.run(self.module.run_inside_env(args))
+
+            self.assertEqual(result, 0)
+            summary = json.loads((work_dir / "summary.json").read_text(encoding="utf-8"))
+            self.assertIsNone(summary["trading_db_path"])
+            self.assertIsNone(summary["trading_run_id"])
+
     def test_run_inside_env_writes_run_log_and_result_lines(self):
         with tempfile.TemporaryDirectory(prefix="fintools-agent-client-run-") as tmpdir:
             work_dir = Path(tmpdir)

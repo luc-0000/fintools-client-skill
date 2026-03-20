@@ -414,8 +414,7 @@ async def run_streaming_deep_research(stock_code, agent_url, token):
 async def run_streaming_trading(stock_code, agent_url, token):
     from agents_client.streaming.trading_agent_client_stream import run_trading_agent
 
-    success = await run_trading_agent(stock_code, agent_url, token)
-    return success
+    return await run_trading_agent(stock_code, agent_url, token)
 
 
 async def run_polling_trading(stock_code, agent_url, token, task_id, report_output_dir=None):
@@ -450,6 +449,37 @@ def write_summary(work_dir, payload):
     return summary_path
 
 
+def persist_trading_result(stock_code, mode, result):
+    from database.trading_agent_database import TradingAgentDatabase
+
+    if "result" not in result or result.get("result") is None:
+        return {}
+
+    run_id = (
+        result.get("task_id")
+        or result.get("run_id")
+        or result.get("id")
+    )
+    payload = result.get("result", result)
+    database = TradingAgentDatabase()
+    saved_run_id = database.save_run(
+        stock_code=stock_code,
+        mode=mode,
+        result_payload=payload,
+        run_id=run_id,
+    )
+    return {
+        "trading_db_path": str(database.db_path),
+        "trading_run_id": saved_run_id,
+    }
+
+
+def extract_streaming_success(streaming_result):
+    if isinstance(streaming_result, dict):
+        return bool(streaming_result.get("success", True))
+    return bool(streaming_result)
+
+
 def print_runtime_banner(parent_dir, work_dir, parent_auto_created, runtime_metadata):
     source = "auto-created parent directory" if parent_auto_created else "user-provided parent directory"
     print("Parent directory: {0}".format(parent_dir))
@@ -475,6 +505,7 @@ async def run_inside_env(args):
     error = None
     success = False
     report_path = None
+    trading_db_metadata = {}
     original_stdout = sys.stdout
     original_stderr = sys.stderr
     with run_log.open("a", encoding="utf-8") as log_handle:
@@ -493,9 +524,13 @@ async def run_inside_env(args):
                     report_path = find_downloaded_report(reports_dir)
             elif args.mode == "streaming" and args.agent_type == "trading":
                 announce_status("正在启动 Trading Agent（streaming）")
-                success = await run_streaming_trading(args.stock_code, args.agent_url, token)
+                streaming_result = await run_streaming_trading(args.stock_code, args.agent_url, token)
+                success = extract_streaming_success(streaming_result)
                 if success:
                     report_path = find_downloaded_report(reports_dir)
+                    if isinstance(streaming_result, dict):
+                        announce_status("正在写入 trading sqlite database")
+                        trading_db_metadata = persist_trading_result(args.stock_code, "streaming", streaming_result)
             elif args.mode == "polling" and args.agent_type == "trading":
                 announce_status("正在启动 Trading Agent（polling）")
                 result = await run_polling_trading(
@@ -508,6 +543,9 @@ async def run_inside_env(args):
                 success = result.get("status") == "completed"
                 report_path = result.get("downloaded_file")
                 error = result.get("error")
+                if success:
+                    announce_status("正在写入 trading sqlite database")
+                    trading_db_metadata = persist_trading_result(args.stock_code, "polling", result)
             elif args.mode == "polling" and args.agent_type == "deep_research":
                 announce_status("正在启动 Deep Research Agent（polling）")
                 result = await run_polling_deep_research(
@@ -552,6 +590,8 @@ async def run_inside_env(args):
         "run_dir": str(work_dir),
         "log_path": str(run_log),
         "report_path": report_path,
+        "trading_db_path": trading_db_metadata.get("trading_db_path"),
+        "trading_run_id": trading_db_metadata.get("trading_run_id"),
         "success": bool(success),
         "error": error,
     }

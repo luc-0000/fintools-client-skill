@@ -131,7 +131,7 @@ async def run_stock_agent_client(
     stock_code: str,
     agent_url: str,
     a2a_token: str,
-) -> bool:
+) -> dict:
     print(f"\n{'=' * 60}")
     print(f"运行 {title}, May take 30-60s to start server...")
     print(f"{'=' * 60}")
@@ -148,4 +148,4 @@ async def run_stock_agent_client(
 
     await client.report_downloader.show_reports()
     await client.report_downloader.download_zip()
-    return result["success"]
+    return result

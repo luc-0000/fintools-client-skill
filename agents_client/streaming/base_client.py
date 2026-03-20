@@ -4,6 +4,7 @@ A2A Agent Client - streaming 模式
 
 import os
 from pathlib import Path
+import re
 from uuid import uuid4
 
 import httpx
@@ -15,6 +16,7 @@ from agents_client.utils import ReportDownloader, normalize_agent_base_url
 
 
 DEFAULT_TIMEOUT = httpx.Timeout(connect=10.0, read=None, write=60.0, pool=60.0)
+ACTION_PATTERN = re.compile(r"(?:决策结果[:：]\s*|action[:：]\s*)(buy|sell|hold)\b", re.IGNORECASE)
 
 
 def load_project_env(module_file: str) -> None:
@@ -74,16 +76,22 @@ class A2AAgentClient:
         )
 
         event_count = 0
+        final_action = None
         async for chunk in self.client.send_message_streaming(req):
             event_count += 1
             result = chunk.model_dump(mode="json", exclude_none=True).get("result")
             if not result:
                 continue
-            await self._handle_stream_result(result, on_status_update, on_artifact_update, on_error)
+            action = await self._handle_stream_result(result, on_status_update, on_artifact_update, on_error)
+            if action:
+                final_action = action
 
-        return {"event_count": event_count, "success": True}
+        response = {"event_count": event_count, "success": True}
+        if final_action:
+            response["result"] = {"action": final_action}
+        return response
 
-    async def _handle_stream_result(self, result: dict, on_status_update, on_artifact_update, on_error) -> None:
+    async def _handle_stream_result(self, result: dict, on_status_update, on_artifact_update, on_error) -> str | None:
         if result.get("kind") == "status-update":
             for part in result.get("status", {}).get("message", {}).get("parts", []):
                 text = part.get("text")
@@ -95,7 +103,9 @@ class A2AAgentClient:
                     await on_status_update(text)
                 else:
                     print(text)
-            return
+                if match := ACTION_PATTERN.search(text):
+                    return match.group(1).lower()
+            return None
 
         if result.get("kind") == "artifact-update":
             artifact = result.get("artifact", {})
@@ -103,6 +113,7 @@ class A2AAgentClient:
                 await on_artifact_update(artifact)
             else:
                 print(f"\n[生成文件] {artifact.get('name', 'unknown')}")
+        return None
 
 
 class StreamingStockAgentClient:

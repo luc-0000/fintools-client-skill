@@ -529,8 +529,10 @@ async def run_inside_env(args):
                 if success:
                     report_path = find_downloaded_report(reports_dir)
                     if isinstance(streaming_result, dict):
-                        announce_status("正在写入 trading sqlite database")
+                        announce_status("正在尝试写入 trading sqlite database")
                         trading_db_metadata = persist_trading_result(args.stock_code, "streaming", streaming_result)
+                        if trading_db_metadata.get("trading_run_id"):
+                            announce_status("trading sqlite database 写入完成")
             elif args.mode == "polling" and args.agent_type == "trading":
                 announce_status("正在启动 Trading Agent（polling）")
                 result = await run_polling_trading(
@@ -544,8 +546,10 @@ async def run_inside_env(args):
                 report_path = result.get("downloaded_file")
                 error = result.get("error")
                 if success:
-                    announce_status("正在写入 trading sqlite database")
+                    announce_status("正在尝试写入 trading sqlite database")
                     trading_db_metadata = persist_trading_result(args.stock_code, "polling", result)
+                    if trading_db_metadata.get("trading_run_id"):
+                        announce_status("trading sqlite database 写入完成")
             elif args.mode == "polling" and args.agent_type == "deep_research":
                 announce_status("正在启动 Deep Research Agent（polling）")
                 result = await run_polling_deep_research(

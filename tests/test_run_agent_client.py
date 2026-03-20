@@ -24,11 +24,20 @@ DB_CLIENT_PATH = (
 UTILS_PATH = (
     Path(__file__).resolve().parents[1] / "agents_client" / "utils.py"
 )
+STREAMING_CLIENT_PATH = (
+    Path(__file__).resolve().parents[1] / "agents_client" / "streaming" / "base_client.py"
+)
 
 
 def build_dependency_stubs():
     httpx_module = types.ModuleType("httpx")
-    httpx_module.Timeout = lambda *args, **kwargs: ("timeout", args, kwargs)
+
+    class DummyTimeout:
+        def __init__(self, *args, **kwargs):
+            self.args = args
+            self.kwargs = kwargs
+
+    httpx_module.Timeout = DummyTimeout
     httpx_module.AsyncClient = object
 
     class HTTPStatusError(Exception):
@@ -123,6 +132,18 @@ def load_utils_module():
     return module
 
 
+def load_streaming_client_module():
+    skill_root = STREAMING_CLIENT_PATH.parents[2]
+    if str(skill_root) not in sys.path:
+        sys.path.insert(0, str(skill_root))
+    spec = importlib.util.spec_from_file_location("streaming_base_client", STREAMING_CLIENT_PATH)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    with mock.patch.dict(sys.modules, build_dependency_stubs(), clear=False):
+        spec.loader.exec_module(module)
+    return module
+
+
 class RunAgentClientTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -130,6 +151,7 @@ class RunAgentClientTests(unittest.TestCase):
         cls.stream_probe = load_stream_probe_module()
         cls.db_client = load_db_client_module()
         cls.utils = load_utils_module()
+        cls.streaming_client = load_streaming_client_module()
 
     def test_normalize_mode_accepts_streaming(self):
         self.assertEqual(self.module.normalize_mode("streaming"), "streaming")
@@ -569,6 +591,44 @@ class RunAgentClientTests(unittest.TestCase):
             summary = json.loads((work_dir / "summary.json").read_text(encoding="utf-8"))
             self.assertIsNone(summary["trading_db_path"])
             self.assertIsNone(summary["trading_run_id"])
+
+    def test_streaming_client_extracts_action_from_final_status_text(self):
+        result = self.module.asyncio.run(
+            self.streaming_client.A2AAgentClient._handle_stream_result(
+                self.streaming_client.A2AAgentClient,
+                {
+                    "kind": "status-update",
+                    "status": {
+                        "message": {
+                            "parts": [{"text": "✅ 分析完成！决策结果：buy"}]
+                        }
+                    },
+                },
+                None,
+                None,
+                None,
+            )
+        )
+        self.assertEqual(result, "buy")
+
+    def test_streaming_client_returns_none_when_status_text_has_no_action(self):
+        result = self.module.asyncio.run(
+            self.streaming_client.A2AAgentClient._handle_stream_result(
+                self.streaming_client.A2AAgentClient,
+                {
+                    "kind": "status-update",
+                    "status": {
+                        "message": {
+                            "parts": [{"text": "⏳ 正在调用 agent..."}]
+                        }
+                    },
+                },
+                None,
+                None,
+                None,
+            )
+        )
+        self.assertIsNone(result)
 
     def test_run_inside_env_writes_run_log_and_result_lines(self):
         with tempfile.TemporaryDirectory(prefix="fintools-agent-client-run-") as tmpdir:

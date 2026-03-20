@@ -75,3 +75,21 @@
 - Symptom: query output shown with labels such as `操作类型` and `创建时间` created the impression that the database schema itself used Chinese column names.
 - Root cause: human-facing display text was conflated with the actual SQLite schema.
 - Fix: verify schema directly before changing structure; confirmed columns were already English (`id`, `run_id`, `stock_code`, `mode`, `action`, `created_at`, `updated_at`, `raw_result`).
+
+### 8. Streaming action extraction was initially tied to one narrow text format
+
+- Symptom: a streaming run produced a real decision such as `The compatible execution action is SELL`, but no SQLite row was written.
+- Root cause: the first client-side extraction logic only matched very specific phrases like `决策结果: buy` or `action: sell`, so alternative server wording was ignored.
+- Fix: replace the narrow regex-only extraction with broader action-context parsing, then stop treating one exact phrase as the contract.
+- Regression:
+  - `python3 -m unittest discover -s tests -q`
+  - Covers `tests/test_run_agent_client.py::test_streaming_client_extracts_action_from_compatible_execution_text`
+
+### 9. Streaming contract relied on text parsing instead of structured fields
+
+- Symptom: streaming persistence remained fragile even after broadening text matching, because any server-side wording change could still break extraction.
+- Root cause: the client was inferring `buy/sell/hold` from human-readable progress text instead of consuming a stable machine-readable field.
+- Fix: add structured `metadata.action` to the server's final streaming event, make the client prefer that structured field, and keep text parsing only as a fallback.
+- Regression:
+  - `python3 -m unittest discover -s tests -q`
+  - Covers `tests/test_run_agent_client.py::test_streaming_client_prefers_structured_action_metadata`

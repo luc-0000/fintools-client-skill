@@ -4,7 +4,6 @@ A2A Agent Client - streaming 模式
 
 import os
 from pathlib import Path
-import re
 from uuid import uuid4
 
 import httpx
@@ -16,11 +15,40 @@ from agents_client.utils import ReportDownloader, normalize_agent_base_url
 
 
 DEFAULT_TIMEOUT = httpx.Timeout(connect=10.0, read=None, write=60.0, pool=60.0)
-ACTION_PATTERN = re.compile(r"(?:决策结果[:：]\s*|action[:：]\s*)(buy|sell|hold)\b", re.IGNORECASE)
 
 
 def load_project_env(module_file: str) -> None:
     load_dotenv(Path(module_file).resolve().parents[2] / ".env")
+
+
+def extract_action_from_text(text: str) -> str | None:
+    normalized = " ".join(text.strip().lower().split())
+    if not normalized:
+        return None
+
+    has_action_context = any(
+        marker in normalized
+        for marker in ("决策结果", "action", "execution action", "compatible execution action")
+    )
+    if not has_action_context:
+        return None
+
+    for action in ("buy", "sell", "hold"):
+        if action in normalized:
+            return action
+    return None
+
+
+def extract_action_from_part(part: dict) -> str | None:
+    metadata = part.get("metadata") or {}
+    action = metadata.get("action")
+    if isinstance(action, str) and action.lower() in {"buy", "sell", "hold"}:
+        return action.lower()
+
+    text = part.get("text")
+    if isinstance(text, str):
+        return extract_action_from_text(text)
+    return None
 
 
 class A2AAgentClient:
@@ -103,8 +131,8 @@ class A2AAgentClient:
                     await on_status_update(text)
                 else:
                     print(text)
-                if match := ACTION_PATTERN.search(text):
-                    return match.group(1).lower()
+                if action := extract_action_from_part(part):
+                    return action
             return None
 
         if result.get("kind") == "artifact-update":

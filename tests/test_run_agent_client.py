@@ -630,6 +630,47 @@ class RunAgentClientTests(unittest.TestCase):
         )
         self.assertIsNone(result)
 
+    def test_streaming_client_extracts_action_from_compatible_execution_text(self):
+        result = self.module.asyncio.run(
+            self.streaming_client.A2AAgentClient._handle_stream_result(
+                self.streaming_client.A2AAgentClient,
+                {
+                    "kind": "status-update",
+                    "status": {
+                        "message": {
+                            "parts": [{"text": "The compatible execution action is SELL"}]
+                        }
+                    },
+                },
+                None,
+                None,
+                None,
+            )
+        )
+        self.assertEqual(result, "sell")
+
+    def test_streaming_client_prefers_structured_action_metadata(self):
+        result = self.module.asyncio.run(
+            self.streaming_client.A2AAgentClient._handle_stream_result(
+                self.streaming_client.A2AAgentClient,
+                {
+                    "kind": "status-update",
+                    "status": {
+                        "message": {
+                            "parts": [{
+                                "text": "final result",
+                                "metadata": {"action": "HOLD"},
+                            }]
+                        }
+                    },
+                },
+                None,
+                None,
+                None,
+            )
+        )
+        self.assertEqual(result, "hold")
+
     def test_run_inside_env_writes_run_log_and_result_lines(self):
         with tempfile.TemporaryDirectory(prefix="fintools-agent-client-run-") as tmpdir:
             work_dir = Path(tmpdir)

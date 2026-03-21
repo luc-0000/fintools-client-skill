@@ -6,10 +6,16 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
+
+
+def _local_now() -> str:
+    """Return current local time as ISO format string."""
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
 class Action(Enum):
@@ -126,10 +132,10 @@ class TradingAgentDatabase:
                     conn.execute(
                         """
                         UPDATE trading_agent_runs
-                        SET raw_result = ?, updated_at = CURRENT_TIMESTAMP
+                        SET raw_result = ?, updated_at = ?
                         WHERE id = ?
                         """,
-                        (normalized_raw, row_id),
+                        (normalized_raw, _local_now(), row_id),
                     )
             conn.execute(
                 """
@@ -149,20 +155,21 @@ class TradingAgentDatabase:
         effective_run_id = run_id or uuid4().hex
         action = normalize_action(result_payload)
         raw_result = serialize_raw_result(result_payload)
+        now = _local_now()
 
         with sqlite3.connect(self.db_path) as conn:
             conn.execute(
                 """
-                INSERT INTO trading_agent_runs (run_id, stock_code, mode, action, raw_result)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO trading_agent_runs (run_id, stock_code, mode, action, created_at, updated_at, raw_result)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(run_id) DO UPDATE SET
                     stock_code = excluded.stock_code,
                     mode = excluded.mode,
                     action = excluded.action,
                     raw_result = excluded.raw_result,
-                    updated_at = CURRENT_TIMESTAMP
+                    updated_at = ?
                 """,
-                (effective_run_id, stock_code, mode, action.value, raw_result),
+                (effective_run_id, stock_code, mode, action.value, now, now, raw_result, now),
             )
 
         return effective_run_id

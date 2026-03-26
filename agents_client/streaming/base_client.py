@@ -18,7 +18,7 @@ DEFAULT_TIMEOUT = httpx.Timeout(connect=10.0, read=None, write=60.0, pool=60.0)
 
 
 def load_project_env(module_file: str) -> None:
-    load_dotenv(Path(module_file).resolve().parents[3] / ".env")
+    load_dotenv(Path(module_file).resolve().parents[2] / ".env")
 
 
 def extract_action_from_text(text: str) -> str | None:

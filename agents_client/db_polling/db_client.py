@@ -15,7 +15,7 @@ from agents_client.utils import ReportDownloader, normalize_agent_base_url
 
 def load_project_env(module_file: str) -> None:
     """加载项目根目录 .env。"""
-    load_dotenv(Path(module_file).resolve().parents[3] / ".env")
+    load_dotenv(Path(module_file).resolve().parents[2] / ".env")
 
 
 class DatabaseAgentClient:

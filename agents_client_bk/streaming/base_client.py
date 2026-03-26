@@ -18,7 +18,7 @@ DEFAULT_TIMEOUT = httpx.Timeout(connect=10.0, read=None, write=60.0, pool=60.0)
 
 
 def load_project_env(module_file: str) -> None:
-    load_dotenv(Path(module_file).resolve().parents[3] / ".env")
+    load_dotenv(Path(module_file).resolve().parents[2] / ".env")
 
 
 def extract_action_from_text(text: str) -> str | None:
@@ -152,6 +152,7 @@ class StreamingStockAgentClient:
         self.report_downloader = ReportDownloader(
             normalize_agent_base_url(agent_url),
             a2a_token,
+            reports_path="reports",
             reports_zip_path="reports/zip",
         )
 
@@ -184,5 +185,6 @@ async def run_stock_agent_client(
     print(f"执行完成！共处理 {result['event_count']} 个事件")
     print(f"{'=' * 60}\n")
 
+    await client.report_downloader.show_reports()
     await client.report_downloader.download_zip()
     return result

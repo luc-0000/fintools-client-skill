@@ -45,6 +45,7 @@ class ReportDownloader:
         agent_url: str,
         a2a_token: str = None,
         timeout: float = 60.0,
+        reports_path: str = "api/reports",
         reports_zip_path: str = "api/reports/zip",
     ):
         """
@@ -54,6 +55,7 @@ class ReportDownloader:
             agent_url: Agent Server 地址（如 http://localhost:9999）
             a2a_token: 认证 token
             timeout: HTTP 请求超时时间
+            reports_path: 报告列表路径（默认 api/reports）
             reports_zip_path: ZIP 下载路径（默认 api/reports/zip）
         """
         if not agent_url:
@@ -63,13 +65,53 @@ class ReportDownloader:
         self.a2a_token = a2a_token or ""
         self.timeout = timeout
 
-        # 构造报告下载 URL
+        # 构造报告 URL
+        self.reports_url = f"{self.agent_url}/{reports_path}"
         self.reports_zip_url = f"{self.agent_url}/{reports_zip_path}"
 
     def _auth_headers(self) -> dict:
         if not self.a2a_token:
             return {}
         return {"Authorization": f"Bearer {self.a2a_token}"}
+
+    async def list_reports(self) -> list:
+        """获取报告列表"""
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            response = await client.get(self.reports_url, headers=self._auth_headers())
+
+            if response.status_code != 200:
+                logger.error(f"获取报告列表失败: {response.status_code}")
+                return []
+
+            data = response.json()
+            return data.get("reports", [])
+
+    async def show_reports(self) -> list:
+        """显示报告列表"""
+        reports = await self.list_reports()
+
+        print(f"\n{'='*60}")
+        print(f"报告列表")
+        print(f"{'='*60}")
+
+        if not reports:
+            print("  暂无可用报告")
+            return []
+
+        print(f"共有 {len(reports)} 个报告:\n")
+
+        for i, report in enumerate(reports, 1):
+            filename = report.get("filename", "unknown")
+            size_kb = report.get("size", 0) / 1024
+            modified = report.get("modified", "N/A")
+
+            print(f"{i}. {filename}")
+            print(f"   大小: {size_kb:.1f} KB")
+            print(f"   修改: {modified}\n")
+
+        print(f"{'='*60}\n")
+
+        return reports
 
     async def download_zip(self, output_dir: str | None = None) -> str | None:
         """
@@ -83,7 +125,15 @@ class ReportDownloader:
         """
         if output_dir is None:
             output_dir = "downloaded_reports"
+        """
+        打包下载所有报告为 ZIP 文件
 
+        Args:
+            output_dir: 输出目录
+
+        Returns:
+            下载后的文件路径，失败返回 None
+        """
         Path(output_dir).mkdir(parents=True, exist_ok=True)
 
         async with httpx.AsyncClient(timeout=self.timeout) as client:

@@ -12,7 +12,7 @@ from agents_client.utils import require_access_token
 
 load_project_env(__file__)
 
-DEFAULT_AGENT_URL = "http://8.153.13.5:8000/api/v1/agents/107/a2a/"
+DEFAULT_AGENT_URL = "http://127.0.0.1:8000/api/v1/agents/69/a2a/"
 DEFAULT_STOCK_CODE = "000001"
 DEFAULT_REPORTS_DIR = str(Path(__file__).resolve().parent / "downloaded_reports")
 

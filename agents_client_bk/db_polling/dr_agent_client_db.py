@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Trading Agent Client - 数据库模式
+Deep Research Agent Client - 数据库模式
 """
 
 import asyncio
@@ -12,12 +12,12 @@ from agents_client.utils import require_access_token
 
 load_project_env(__file__)
 
-DEFAULT_AGENT_URL = "http://8.153.13.5:8000/api/v1/agents/107/a2a/"
-DEFAULT_STOCK_CODE = "000001"
+DEFAULT_AGENT_URL = "http://127.0.0.1:8000/api/v1/agents/82/a2a/"
+DEFAULT_STOCK_CODE = "600519"
 DEFAULT_REPORTS_DIR = str(Path(__file__).resolve().parent / "downloaded_reports")
 
 
-class TradingAgentClientDB(StockAgentClientDB):
+class DeepResearchAgentClientDB(StockAgentClientDB):
     def __init__(self, agent_url: str = DEFAULT_AGENT_URL, **kwargs):
         super().__init__(agent_url=agent_url, default_reports_dir=DEFAULT_REPORTS_DIR, **kwargs)
 
@@ -30,8 +30,8 @@ async def main(
     report_output_dir: str | None = None,
 ):
     return await run_stock_agent_client(
-        TradingAgentClientDB,
-        "Trading Agent Client",
+        DeepResearchAgentClientDB,
+        "Deep Research Agent Client",
         agent_url,
         stock_code,
         a2a_token,

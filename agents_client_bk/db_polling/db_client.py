@@ -15,7 +15,7 @@ from agents_client.utils import ReportDownloader, normalize_agent_base_url
 
 def load_project_env(module_file: str) -> None:
     """加载项目根目录 .env。"""
-    load_dotenv(Path(module_file).resolve().parents[3] / ".env")
+    load_dotenv(Path(module_file).resolve().parents[2] / ".env")
 
 
 class DatabaseAgentClient:
@@ -166,6 +166,7 @@ class StockAgentClientDB(DatabaseAgentClient):
             agent_url=normalize_agent_base_url(agent_url),
             a2a_token=kwargs.get("a2a_token"),
             timeout=60.0,
+            reports_path="reports",
             reports_zip_path="reports/zip",
         )
 
